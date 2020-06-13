@@ -26,7 +26,9 @@
   [_ {{bot :bot} :author :keys [channel-id content]}]
   (when-not bot
     (let [args (clojure.string/split content #" ")]
-      (m/create-message! (:messaging @state) channel-id :content (str "```Commande test\nArguments:```" args)))))
+      (when (= (subs (first args) 0 (count (:prefix config))) (:prefix config))
+        (case (subs (first args) (count (:prefix config))) ; config = string length
+          "test" (m/create-message! (:messaging @state) channel-id :content (str "```Commande test\nArguments:" args "```")))))))
 
 (defn -main
   [& _]
