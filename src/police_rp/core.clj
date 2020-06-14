@@ -6,7 +6,8 @@
    [discljord.events :as e]
    [clojure.core.async :as a]
    [clojure.string]
-   [police-rp.utils :as utils]))
+   [police-rp.utils :as utils]
+   [police-rp.cmd_handler :as cmdhandler]))
 
 (def config (utils/read-config))
 (def state (atom nil))
@@ -20,15 +21,18 @@
 
 (defmethod handle-event :ready
   [_ _]
-  (c/status-update! (:connection @state) :activity (c/create-activity :name "the 911" :type :watch))) ;; Change l'activité du "Joue à"
+  (c/status-update!(:connection @state) :activity
+                   (c/create-activity :name "the 911" :type :watch))) ;; Change l'activité du "Joue à"
 
 (defmethod handle-event :message-create
   [_ {{bot :bot} :author :keys [channel-id content]}]
   (when-not bot
     (let [args (clojure.string/split content #" ")]
       (when (= (subs (first args) 0 (count (:prefix config))) (:prefix config))
-        (case (subs (first args) (count (:prefix config))) ; config = string length
-          "test" (m/create-message! (:messaging @state) channel-id :content (str "```Commande test\nArguments:" args "```")))))))
+        (cmdhandler/redirect
+         (subs (first args) (count (:prefix config)))
+         state
+         {:channel-id channel-id :args args})))))
 
 (defn -main
   [& _]
