@@ -1,4 +1,4 @@
-# police-rp
+# Police RP Bot
 
 A Police RolePlay Discord bot made with Discljord
 
