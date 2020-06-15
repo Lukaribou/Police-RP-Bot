@@ -10,7 +10,7 @@
    [police-rp.cmd_handler :as cmdhandler]))
 
 (def config (utils/read-config))
-(def state (atom nil))
+(defonce state (atom nil))
 
 (defmulti handle-event
   (fn [event-type _]
@@ -21,18 +21,20 @@
 
 (defmethod handle-event :ready
   [_ _]
-  (c/status-update!(:connection @state) :activity
-                   (c/create-activity :name "the 911" :type :watch))) ;; Change l'activité du "Joue à"
+  (c/status-update! (:connection @state) :activity
+                    (c/create-activity :name "the 911" :type :watch))) ;; Change l'activité du "Joue à"
 
 (defmethod handle-event :message-create
-  [_ {{bot :bot} :author :keys [channel-id content]}]
+  [_ {{bot :bot} :author :keys [channel-id content author]}]
   (when-not bot
     (let [args (clojure.string/split content #" ")]
       (when (= (subs (first args) 0 (count (:prefix config))) (:prefix config))
-        (cmdhandler/redirect
-         (subs (first args) (count (:prefix config)))
-         state
-         {:channel-id channel-id :args args})))))
+        (if (= (first args) "prp!on")
+          (m/create-message! (:messaging @state) channel-id :content "yep")
+          (cmdhandler/redirect
+           (subs (first args) (count (:prefix config)))
+           state
+           {:channel-id channel-id :args args :author author}))))))
 
 (defn -main
   [& _]
