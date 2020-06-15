@@ -2,18 +2,31 @@
   (:gen-class)
   (:require
    [discljord.messaging]
-   [police-rp.commands.test]
-   [police-rp.commands.rp_init]))
+   [police-rp.commands.test :as test]
+   [police-rp.commands.rp-init :as init]))
+
+(declare commands)
+
+(defn help-cmd [state & [options]]
+  (doseq [c commands]
+    (println (str c)))
+  (discljord.messaging/create-message!
+   (:messaging @state)
+   (:channel-id options)
+   :embed {:title "Page d'aide de Police-RP-Bot"
+           :color 0x0000FF
+           :fields [{:name "Commandes disponibles:"
+                     :value "e"}]})) ; lister les commandes
 
 (def commands
-  {"test" #'police-rp.commands.test/execute
-   "rp-init" #'police-rp.commands.rp_init/execute})
+  {"test" #'test/execute
+   "rp-init" #'init/execute
+   "help" #'help-cmd})
 
 (defn redirect [cmd state & [options]]
   (if (nil? (commands cmd))
-    (discljord.messaging/create-message! 
-     (:messaging @state) 
-     (:channel-id options) 
+    (discljord.messaging/create-message!
+     (:messaging @state)
+     (:channel-id options)
      :content (str " Commande `" cmd "` introuvable"))
     ((commands cmd) state options)))
-
