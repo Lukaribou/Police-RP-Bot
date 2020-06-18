@@ -24,9 +24,9 @@
    "help" #'help-cmd})
 
 (defn redirect [cmd state & [options]]
-  (if (nil? (commands cmd))
+  (if-let [command (commands cmd)]
+    (command state options)
     (discljord.messaging/create-message!
      (:messaging @state)
      (:channel-id options)
-     :content (str " Commande `" cmd "` introuvable"))
-    ((commands cmd) state options)))
+     :content (str " Commande `" cmd "` introuvable"))))
